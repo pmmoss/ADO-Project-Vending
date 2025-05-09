@@ -58,7 +58,7 @@ pool:
 # Pipeline Variables
 # These variables are available throughout the pipeline
 variables:
-- group: Build Variables
+- group: common-variables
 
 # Pipeline Stages
 stages:
