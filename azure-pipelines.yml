@@ -1,0 +1,219 @@
+# Pipeline Parameters
+# These parameters can be provided when running the pipeline through the Azure DevOps UI
+# Default values are provided where appropriate, empty strings for required values
+parameters:
+- name: ado_org_service_url
+  type: string
+  default: ''
+  # Azure DevOps organization URL (e.g., https://dev.azure.com/your-org)
+- name: project_name
+  type: string
+  default: ''
+  # Name of the Azure DevOps project to create
+- name: project_description
+  type: string
+  default: 'Project created via Terraform'
+  # Description of the Azure DevOps project
+- name: github_repo_id
+  type: string
+  default: ''
+  # GitHub repository ID for service connection
+- name: github_enterprise_url
+  type: string
+  default: 'https://github.com'
+  # GitHub Enterprise URL (if using GitHub Enterprise)
+- name: azure_tenant_id
+  type: string
+  default: ''
+  # Azure tenant ID for service connection
+- name: azure_subscription_id
+  type: string
+  default: ''
+  # Azure subscription ID for service connection
+- name: azure_subscription_name
+  type: string
+  default: ''
+  # Azure subscription name for service connection
+
+  # Pipeline Triggers
+  # Pipeline will run when changes are made to:
+  # - Any .tf files (Terraform configuration)
+  # - Any .tfvars files (Terraform variables)
+  # - The pipeline file itself
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - '**/*.tf'
+    - '**/*.tfvars'
+    - 'azure-pipelines.yml'
+
+# Build Agent Configuration
+# Using Ubuntu latest for consistent build environment
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Pipeline Variables
+# These variables are available throughout the pipeline
+variables:
+- group: Build Variables
+
+# Pipeline Stages
+stages:
+# Stage 1: Validate
+# Validates the Terraform configuration and sets up variables
+- stage: Validate
+  displayName: 'Validate Terraform'
+  jobs:
+  - job: Validate
+    displayName: 'Validate Terraform Configuration'
+    steps:
+    # Install Terraform
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: 'latest'
+
+    # Variable Management
+    # This step handles:
+    # 1. Creating/updating terraform.tfvars from parameters
+    # 2. Setting pipeline variables for use in later stages
+    # 3. Generating unique names for Azure resources
+    - task: Bash@3
+      name: SetVariables
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Create terraform.tfvars if it doesn't exist
+          if [ ! -f terraform.tfvars ]; then
+            echo "Creating terraform.tfvars from parameters..."
+            cat > terraform.tfvars << EOF
+          ado_org_service_url = "${{ parameters.ado_org_service_url }}"
+          project_name = "${{ parameters.project_name }}"
+          project_description = "${{ parameters.project_description }}"
+          github_repo_id = "${{ parameters.github_repo_id }}"
+          github_enterprise_url = "${{ parameters.github_enterprise_url }}"
+          azure_tenant_id = "${{ parameters.azure_tenant_id }}"
+          azure_subscription_id = "${{ parameters.azure_subscription_id }}"
+          azure_subscription_name = "${{ parameters.azure_subscription_name }}"
+          EOF
+          else
+            echo "Updating terraform.tfvars with parameters..."
+            # Update only if parameters are provided
+            if [ ! -z "${{ parameters.ado_org_service_url }}" ]; then
+              sed -i "s|ado_org_service_url = .*|ado_org_service_url = \"${{ parameters.ado_org_service_url }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.project_name }}" ]; then
+              sed -i "s|project_name = .*|project_name = \"${{ parameters.project_name }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.project_description }}" ]; then
+              sed -i "s|project_description = .*|project_description = \"${{ parameters.project_description }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.github_repo_id }}" ]; then
+              sed -i "s|github_repo_id = .*|github_repo_id = \"${{ parameters.github_repo_id }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.github_enterprise_url }}" ]; then
+              sed -i "s|github_enterprise_url = .*|github_enterprise_url = \"${{ parameters.github_enterprise_url }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.azure_tenant_id }}" ]; then
+              sed -i "s|azure_tenant_id = .*|azure_tenant_id = \"${{ parameters.azure_tenant_id }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.azure_subscription_id }}" ]; then
+              sed -i "s|azure_subscription_id = .*|azure_subscription_id = \"${{ parameters.azure_subscription_id }}\"|" terraform.tfvars
+            fi
+            if [ ! -z "${{ parameters.azure_subscription_name }}" ]; then
+              sed -i "s|azure_subscription_name = .*|azure_subscription_name = \"${{ parameters.azure_subscription_name }}\"|" terraform.tfvars
+            fi
+          fi
+
+          # Read terraform.tfvars and set pipeline variables
+          # These variables will be used in later stages
+          ADO_ORG_URL=$(grep "ado_org_service_url" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+          PROJECT_NAME=$(grep "project_name" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+          GITHUB_REPO_ID=$(grep "github_repo_id" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+          AZURE_TENANT_ID=$(grep "azure_tenant_id" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+          AZURE_SUB_ID=$(grep "azure_subscription_id" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+          AZURE_SUB_NAME=$(grep "azure_subscription_name" terraform.tfvars | cut -d'=' -f2 | tr -d ' "')
+
+          # Set pipeline variables for use in later stages
+          echo "##vso[task.setvariable variable=ADO_ORG_URL]$ADO_ORG_URL"
+          echo "##vso[task.setvariable variable=PROJECT_NAME]$PROJECT_NAME"
+          echo "##vso[task.setvariable variable=GITHUB_REPO_ID]$GITHUB_REPO_ID"
+          echo "##vso[task.setvariable variable=AZURE_TENANT_ID]$AZURE_TENANT_ID"
+          echo "##vso[task.setvariable variable=AZURE_SUB_ID]$AZURE_SUB_ID"
+          echo "##vso[task.setvariable variable=AZURE_SUB_NAME]$AZURE_SUB_NAME"
+
+          # Generate unique storage account name based on project name
+          # This ensures unique state storage for each project
+          STORAGE_ACCOUNT="tfstate$(echo $PROJECT_NAME | tr -cd '[:alnum:]' | tr '[:upper:]' '[:lower:]')"
+          echo "##vso[task.setvariable variable=STORAGE_ACCOUNT]$STORAGE_ACCOUNT"
+
+          # Set other required variables for Terraform state management
+          echo "##vso[task.setvariable variable=RESOURCE_GROUP]terraform-state-rg"
+          echo "##vso[task.setvariable variable=CONTAINER_NAME]tfstate"
+          echo "##vso[task.setvariable variable=KEY]terraform.tfstate"
+          echo "##vso[task.setvariable variable=TF_WORKSPACE]default"
+
+    # Initialize Terraform
+    # Sets up the backend and downloads required providers
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+        backendServiceArm: 'Azure'
+        backendAzureRmResourceGroupName: '$(RESOURCE_GROUP)'
+        backendAzureRmStorageAccountName: '$(STORAGE_ACCOUNT)'
+        backendAzureRmContainerName: '$(CONTAINER_NAME)'
+        backendAzureRmKey: '$(KEY)'
+
+    # Validate Terraform Configuration
+    # Checks for syntax errors and validates the configuration
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+# Stage 2: Plan
+# Creates an execution plan to preview changes
+- stage: Plan
+  displayName: 'Plan Terraform'
+  dependsOn: Validate
+  jobs:
+  - job: Plan
+    displayName: 'Plan Terraform Changes'
+    steps:
+    # Generate Terraform Plan
+    # Creates a detailed plan of all changes to be made
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(System.DefaultWorkingDirectory)'
+        environmentServiceNameAzureRM: 'Azure'
+
+# Stage 3: Apply
+# Applies the planned changes
+- stage: Apply
+  displayName: 'Apply Terraform'
+  dependsOn: Plan
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Apply Terraform Changes'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Apply Terraform Changes
+          # Executes the planned changes
+          # Requires approval in the production environment
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)'
+              environmentServiceNameAzureRM: 'Azure'

@@ -1,0 +1,10 @@
+ado_org_service_url = "https://dev.azure.com/your-org"
+project_name        = "my-project"
+project_description = "My Azure DevOps Project"
+
+github_repo_id      = "your-github-repo-id"
+github_enterprise_url = "https://github.com"
+
+azure_tenant_id        = "your-azure-tenant-id"
+azure_subscription_id  = "your-azure-subscription-id"
+azure_subscription_name = "your-azure-subscription-name" 
