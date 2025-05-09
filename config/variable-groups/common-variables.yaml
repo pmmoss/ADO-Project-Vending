@@ -1,0 +1,30 @@
+# Common Variables Template
+# These variables will be created in the common-variables group
+
+variables:
+  # Azure DevOps Organization
+  ADO_ORG_URL: "https://dev.azure.com/busnit" # Replace with your org URL
+
+  # Azure Subscription
+  AZURE_SUBSCRIPTION: "e6358700-f24a-461f-887f-72554e3785af" # Name of your Azure subscription service connection
+  ARM_SUBSCRIPTION_NAME: "your-subscription-name" # Display name of your Azure subscription
+  ARM_CLIENT_ID: "$(ARM_CLIENT_ID)" # Will be set during pipeline run
+
+  # Common Settings
+  LOCATION: "eastus"
+  ENVIRONMENT: "dev"
+
+  # Pipeline Settings
+  BUILD_AGENT_POOL: "ubuntu-latest"
+  TERRAFORM_VERSION: "latest"
+
+  # Infrastructure Settings
+  RESOURCE_GROUP: "rg-$(PROJECT_NAME)"
+  STORAGE_ACCOUNT: "st$(PROJECT_NAME)tfstate"
+  APP_NAME: "$(PROJECT_NAME)-app"
+
+  # Security Settings
+  TF_VAR_client_id: "$(ARM_CLIENT_ID)"
+  TF_VAR_client_secret: "$(ARM_CLIENT_SECRET)"
+  TF_VAR_tenant_id: "$(ARM_TENANT_ID)"
+  TF_VAR_subscription_id: "$(ARM_SUBSCRIPTION_ID)"
