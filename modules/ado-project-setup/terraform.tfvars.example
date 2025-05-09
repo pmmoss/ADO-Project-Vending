@@ -1,0 +1,37 @@
+project_name = "ADO-Vending"
+project_description = "Vending Machine type Project"
+ado_org_url = "https://dev.azure.com/busnit"
+subscription_id = "your-subscription-id"
+tenant_id = "your-tenant-id"
+subscription_name = "your-subscription-name"
+service_principal_roles = ["Contributor", "Network Contributor"]
+
+variable_groups = {
+  "common-variables" = {
+    name = "common-variables"
+    description = "Common variables for all environments"
+    variables = {
+      "ARM_SUBSCRIPTION_ID" = "your-subscription-id"
+      "ARM_TENANT_ID" = "your-tenant-id"
+      "PROJECT_NAME" = "example-project"
+    }
+  }
+  "dev-variables" = {
+    name = "dev-variables"
+    description = "Development environment variables"
+    variables = {
+      "ENVIRONMENT" = "dev"
+      "LOCATION" = "eastus"
+      "RESOURCE_GROUP" = "rg-dev"
+    }
+  }
+  "prod-variables" = {
+    name = "prod-variables"
+    description = "Production environment variables"
+    variables = {
+      "ENVIRONMENT" = "prod"
+      "LOCATION" = "eastus2"
+      "RESOURCE_GROUP" = "rg-prod"
+    }
+  }
+} 

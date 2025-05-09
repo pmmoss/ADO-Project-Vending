@@ -1,0 +1,35 @@
+# Project Configuration Template
+# Copy this file to environments/projects/your-project-name.yaml and update values
+# Sensitive values should be stored in Azure DevOps variable groups
+
+project:
+  name: "simple-rg-project"
+  description: "Simple Resource Group Project"
+  repository:
+    name: "simple-rg-project"
+    branch: "main"
+
+# Non-sensitive configuration
+config:
+  location: "eastus"
+  resource_group_name: "rg-simple-project"
+  tags:
+    Environment: "Development"
+    Project: "SimpleRG"
+
+# Reference to Azure DevOps variable groups
+variable_groups:
+- name: "common-variables"
+  description: "Common variables for all environments"
+- name: "sensitive-variables"
+  description: "Sensitive variables (subscription IDs, etc.)"
+
+# Pipeline configurations
+pipelines:
+  resource-group:
+    name: "resource-group"
+    description: "Pipeline to create and manage resource group"
+    variables:
+      TF_WORKSPACE: "default"
+      TF_VAR_location: "eastus"
+      TF_VAR_resource_group_name: "rg-simple-project"

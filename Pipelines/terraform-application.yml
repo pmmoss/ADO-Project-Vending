@@ -1,0 +1,84 @@
+parameters:
+- name: projectName
+  type: string
+- name: environment
+  type: string
+  default: 'dev'
+- name: workingDirectory
+  type: string
+  default: '$(System.DefaultWorkingDirectory)/terraform'
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - terraform/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: ${{ parameters.projectName }}-variables
+
+stages:
+- stage: Validate
+  displayName: 'Validate Terraform'
+  jobs:
+  - job: Validate
+    displayName: 'Validate Terraform Configuration'
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendServiceArm: '$(AZURE_SUBSCRIPTION)'
+        backendAzureRmResourceGroupName: '$(RESOURCE_GROUP)'
+        backendAzureRmStorageAccountName: '$(STORAGE_ACCOUNT)'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: '${{ parameters.environment }}-application.tfstate'
+
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: ${{ parameters.workingDirectory }}
+
+- stage: Plan
+  displayName: 'Plan Terraform'
+  dependsOn: Validate
+  jobs:
+  - job: Plan
+    displayName: 'Plan Terraform Changes'
+    steps:
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
+
+- stage: Apply
+  displayName: 'Apply Terraform'
+  dependsOn: Plan
+  condition: succeeded()
+  jobs:
+  - deployment: Apply
+    displayName: 'Apply Terraform Changes'
+    environment: ${{ parameters.environment }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: ${{ parameters.workingDirectory }}
+              environmentServiceNameAzureRM: '$(AZURE_SUBSCRIPTION)'
