@@ -1,6 +1,6 @@
 project_name = "ADO-Vending"
 project_description = "Vending Machine type Project"
-ado_org_url = "https://dev.azure.com/busnit"
+ado_org_url = "https://dev.azure.com/your-org"
 subscription_id = "your-subscription-id"
 tenant_id = "your-tenant-id"
 subscription_name = "your-subscription-name"

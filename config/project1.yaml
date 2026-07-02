@@ -2,8 +2,8 @@
 # Copy this file to config/projects/your-project-name.yaml and fill in the values
 
 project_name: "ADO-Vending" # Required: Name of your Azure DevOps project
-subscription_id: "e6358700-f24a-461f-887f-72554e3785af" # Required: Your Azure subscription ID
-tenant_id: "aa929cf5-663b-4a51-b9c1-98217fe4b965" # Required: Your Azure tenant ID
+subscription_id: "your-subscription-id" # Required: Your Azure subscription ID
+tenant_id: "your-tenant-id" # Required: Your Azure tenant ID
 location: "eastus" # Optional: Azure region (defaults to eastus)
 
 # Optional: Additional settings

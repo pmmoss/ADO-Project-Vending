@@ -3,10 +3,10 @@
 
 variables:
   # Azure DevOps Organization
-  ADO_ORG_URL: "https://dev.azure.com/busnit" # Replace with your org URL
+  ADO_ORG_URL: "https://dev.azure.com/your-org" # Replace with your org URL
 
   # Azure Subscription
-  AZURE_SUBSCRIPTION: "e6358700-f24a-461f-887f-72554e3785af" # Name of your Azure subscription service connection
+  AZURE_SUBSCRIPTION: "your-subscription-id" # Name of your Azure subscription service connection
   ARM_SUBSCRIPTION_NAME: "your-subscription-name" # Display name of your Azure subscription
   ARM_CLIENT_ID: "$(ARM_CLIENT_ID)" # Will be set during pipeline run
 
