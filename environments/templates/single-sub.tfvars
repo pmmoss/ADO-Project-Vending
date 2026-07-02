@@ -1,8 +1,8 @@
 # Service Principal Configuration
 subscription = {
-  subscription_id   = "e6358700-f24a-461f-887f-72554e3785af"
-  subscription_name = "SUB-PMOSS-DEV"
-  tenant_id        = "a9e613d6-49f9-499f-9bcf-e95f8f3bbbc8"
+  subscription_id   = "your-subscription-id"
+  subscription_name = "your-subscription-name"
+  tenant_id        = "your-tenant-id"
   role_assignments = ["Contributor", "Network Contributor"]
 }
 
